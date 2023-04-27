@@ -90,28 +90,21 @@ different costs to members (the listed costs are per half-hour 'slot'), and
 the guest user's ID is always 0. Include in your output the name of the
 facility, the name of the member formatted as a single column, and the cost.
 Order by descending cost, and do not use any subqueries. */
-SELECT f.name, concat(m.firstname,' ',m.surname) AS member_name, 
-f.guestcost*b.slots AS cost
-FROM Bookings AS b
-INNER JOIN Facilities AS f
-ON b.facid=f.facid
-INNER JOIN Members AS m
-ON b.memid = m.memid
+SELECT f.name, concat(m.firstname,' ',m.surname) AS member_name,
+CASE b.memid 
+WHEN 0 THEN f.guestcost*b.slots 
+ELSE f.membercost*b.slots 
+END AS cost 
+FROM Bookings AS b 
+INNER JOIN Facilities AS f 
+ON b.facid=f.facid 
+INNER JOIN Members AS m 
+ON b.memid = m.memid 
 WHERE starttime LIKE '2012-09-14%'
-AND b.memid=0
-AND f.guestcost*b.slots>30
-UNION ALL
-SELECT f.name, concat(m.firstname,' ',m.surname) AS member_name, 
-f.membercost*b.slots AS cost
-FROM Bookings AS b
-INNER JOIN Facilities AS f
-ON b.facid=f.facid
-INNER JOIN Members AS m
-ON b.memid = m.memid
-WHERE starttime LIKE '2012-09-14%'
-AND b.memid<>0
-AND f.membercost*b.slots>30
+AND ((b.memid=0 AND f.guestcost*b.slots>30)
+     OR (b.memid!=0 AND f.membercost*b.slots>30))
 ORDER BY cost DESC;
+
 
 /* Q9: This time, produce the same result as in Q8, but using a subquery. */
 SELECT * 
